@@ -270,8 +270,8 @@ renderer.setPixelRatio(ratio);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
-camera.position.set(0, 0, 5);
-camera.lookAt(new THREE.Vector3(0, 0, 0));
+camera.position.set(1.2, 1.2, 3);
+camera.lookAt(new THREE.Vector3(0, 0.5, 0));
 
 const renderTarget = new THREE.WebGLRenderTarget(1, 1);
 renderTarget.texture.format = THREE.RGBFormat;
@@ -355,6 +355,18 @@ async function main() {
 
   const ambientLight = new THREE.AmbientLight(0xffffff);
   scene.add(ambientLight);
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(10, 10),
+    new THREE.MeshStandardMaterial({
+      color: 0x68686b,
+      roughness: 1,
+      metalness: 0,
+      // fog: true,
+    }),
+  );
+  floor.rotation.x -= 90 * Math.PI / 180;
+  scene.add(floor);
 
   const cube = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1),
