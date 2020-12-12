@@ -3,8 +3,21 @@
 console.log("run");
 
 let width, height;
+let particleMesh;
 
-function createParticle() {
+async function loadTexture(path) {
+  const loader = new THREE.TextureLoader();
+  return new Promise((resolve, reject) => {
+    const onLoad = (texture) => resolve(texture);
+    const onError = (err) => {
+      console.error(err);
+      reject();
+    }
+    loader.load(path, onLoad, undefined, onError);
+  });
+}
+
+async function createParticle() {
   const vertexShader = `
   attribute vec3 position;
   attribute vec2 uv;
@@ -20,7 +33,6 @@ function createParticle() {
   uniform mat4 modelViewMatrix;
   uniform mat4 projectionMatrix;
   uniform float uTime;
-
 
   void main() {
     vUv = uv;
@@ -47,6 +59,7 @@ function createParticle() {
   uniform vec2 uResolution;
   uniform sampler2D uDepthTexture;
   uniform float uDepthFade;
+  uniform sampler2D uMaskTexture;
 
   float readDepth(sampler2D depthSampler, vec2 coord) {
     float fragCoordZ = texture2D(depthSampler, coord).x;
@@ -59,8 +72,14 @@ function createParticle() {
     // vec2 p = vUv * 2. - 1.;
     // diffuseColor.a = 1. - smoothstep(length(p), 0., .05);
     // diffuseColor.a = clamp(diffuseColor.a, 0., 1.);
-    // #include <alphatest_fragment>
     // gl_FragColor = diffuseColor;
+
+    vec4 diffuseColor = vec4(vec3(0.), 1.);
+    float mask = texture2D(uMaskTexture, vUv).r;
+
+    diffuseColor = vec4(mask);
+
+    #include <alphatest_fragment>
 
     vec2 screenCoord = vec2(
       gl_FragCoord.x / uResolution.x,
@@ -73,10 +92,14 @@ function createParticle() {
     float currentDepth = viewZToOrthographicDepth(viewZ, uCameraNear, uCameraFar);
     float fade = clamp(abs(currentDepth - sceneDepth) / max(uDepthFade, .0001), 0., 1.);
 
+    diffuseColor.a *= fade;
+    gl_FragColor = diffuseColor;
     // gl_FragColor = vec4(vec3(currentDepth), 1.);
-    gl_FragColor = vec4(vec3(1.), fade);
+    // gl_FragColor = vec4(vec3(1.), fade);
   }
   `;
+
+  const texture = await loadTexture("/smoke.png");
 
   const geometry = new THREE.BufferGeometry();
 
@@ -148,6 +171,9 @@ function createParticle() {
     alphaTest: 0.01,
     depthWrite: false,
     uniforms: {
+      uMaskTexture: {
+        value: texture,
+      },
       uTime: {
         value: 0,
       },
@@ -212,18 +238,6 @@ renderTarget.depthTexture.format = THREE.DepthFormat;
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshBasicMaterial({
-    color: 0xff0000
-  })
-);
-
-scene.add(cube);
-
-const particleMesh = createParticle();
-scene.add(particleMesh);
-
 const onWindowResize = () => {
   width = wrapper.offsetWidth;
   height = wrapper.offsetHeight;
@@ -232,9 +246,6 @@ const onWindowResize = () => {
   renderer.setSize(width, height);
   renderTarget.setSize(width * ratio, height * ratio);
 }
-
-onWindowResize();
-window.addEventListener("resize", () => onWindowResize());
 
 const tick = (time) => {
   controls.update();
@@ -268,8 +279,21 @@ const tick = (time) => {
   requestAnimationFrame(tick);
 }
 
-
 async function main() {
+  particleMesh = await createParticle();
+  scene.add(particleMesh);
+
+  const cube = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xff0000
+    })
+  );
+  scene.add(cube);
+
+  onWindowResize();
+  window.addEventListener("resize", () => onWindowResize());
+
   requestAnimationFrame(tick);
 }
 
