@@ -88,17 +88,16 @@ async function createParticle() {
 
     vec3 vertexPosition = position;
 
-    float moveSpeed = 1.;
-    float moveAnim = mod((uTime + index * 100.) / (1000. / moveSpeed), 1.);
-    // moveAnim = .5;
-    float moveFade = smoothstep(0., .5, moveAnim) * (1. - smoothstep(.5, 1., moveAnim));
+    float moveSpeed = 1.1;
+    float moveAnim = mod((uTime + index * 200.) / (1000. / moveSpeed), 1.);
+    float moveFade = smoothstep(0., .7, moveAnim) * (1. - smoothstep(.3, 1., moveAnim));
 
     vFade = moveFade;
 
     vec3 positionOffset = vec3(
       0,
       0,
-      mix(1.5, -1.5, moveAnim)
+      mix(2., -2., moveAnim)
     );
     vertexPosition += positionOffset;
 
