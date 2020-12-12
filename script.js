@@ -329,7 +329,7 @@ const wrapper = document.querySelector(".js-wrapper");
 const canvas = document.querySelector(".js-canvas");
 
 const renderer = new THREE.WebGLRenderer({ canvas });
-const ratio = Math.min(window.devicePixelRatio, .5);
+const ratio = Math.min(window.devicePixelRatio, 1);
 
 renderer.setPixelRatio(ratio);
 
