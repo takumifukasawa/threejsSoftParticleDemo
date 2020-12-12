@@ -116,7 +116,7 @@ async function createParticle() {
   `;
 
   const fragmentShader = `
-  precision mediump float;
+  precision highp float;
 
   #include <packing>
   #include <fog_pars_fragment>
