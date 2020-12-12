@@ -6,34 +6,75 @@ let width, height;
 
 function createParticle() {
   const vertexShader = `
+  attribute vec3 position;
+  attribute vec2 uv;
   attribute float index;
   attribute vec2 offset;
   attribute vec2 size;
   attribute vec3 color;
+
   varying vec2 vUv;
   varying vec3 vColor;
+  varying vec4 vViewPosition;
+
+  uniform mat4 modelViewMatrix;
+  uniform mat4 projectionMatrix;
   uniform float uTime;
+
+
   void main() {
     vUv = uv;
     vColor = color;
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+    vViewPosition = mvPosition;
     float anim = sin((uTime * 2. + index * 100.) / 1000.) * .5 + .5;
+    anim = 1.;
     mvPosition.xy += offset * vec2(size.x, size.y) * anim;
     gl_Position = projectionMatrix * mvPosition;
   }
   `;
 
   const fragmentShader = `
-  precision mediump float;
+  precision highp float;
+  #include <packing>
+
   varying vec2 vUv;
   varying vec3 vColor;
+  varying vec4 vViewPosition;
+
+  uniform float uCameraNear;
+  uniform float uCameraFar;
+  uniform vec2 uResolution;
+  uniform sampler2D uDepthTexture;
+  uniform float uDepthFade;
+
+  float readDepth(sampler2D depthSampler, vec2 coord) {
+    float fragCoordZ = texture2D(depthSampler, coord).x;
+    float viewZ = perspectiveDepthToViewZ(fragCoordZ, uCameraNear, uCameraFar);
+    return viewZToOrthographicDepth(viewZ, uCameraNear, uCameraFar);
+  }
+
   void main() {
-    vec4 diffuseColor = vec4(vColor, 1.);
-    vec2 p = vUv * 2. - 1.;
-    diffuseColor.a = 1. - smoothstep(length(p), 0., .05);
-    diffuseColor.a = clamp(diffuseColor.a, 0., 1.);
-    #include <alphatest_fragment>
-    gl_FragColor = diffuseColor;
+    // vec4 diffuseColor = vec4(vColor, 1.);
+    // vec2 p = vUv * 2. - 1.;
+    // diffuseColor.a = 1. - smoothstep(length(p), 0., .05);
+    // diffuseColor.a = clamp(diffuseColor.a, 0., 1.);
+    // #include <alphatest_fragment>
+    // gl_FragColor = diffuseColor;
+
+    vec2 screenCoord = vec2(
+      gl_FragCoord.x / uResolution.x,
+      gl_FragCoord.y / uResolution.y
+    );
+
+    float sceneDepth = readDepth(uDepthTexture, screenCoord);
+
+    float viewZ = vViewPosition.z;
+    float currentDepth = viewZToOrthographicDepth(viewZ, uCameraNear, uCameraFar);
+    float fade = clamp(abs(currentDepth - sceneDepth) / max(uDepthFade, .0001), 0., 1.);
+
+    // gl_FragColor = vec4(vec3(currentDepth), 1.);
+    gl_FragColor = vec4(vec3(1.), fade);
   }
   `;
 
@@ -51,7 +92,7 @@ function createParticle() {
   const sizes = [];
   const colors = [];
 
-  const particleNum = 100;
+  const particleNum = 1;
   const randomOffsetRange = 2;
   const sizeRange = 2.;
   const sizeMin = 0.4;
@@ -99,7 +140,7 @@ function createParticle() {
   geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 2));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-  const material = new THREE.ShaderMaterial({
+  const material = new THREE.RawShaderMaterial({
     vertexShader,
     fragmentShader,
     transparent: true,
@@ -109,6 +150,21 @@ function createParticle() {
     uniforms: {
       uTime: {
         value: 0,
+      },
+      uCameraNear: {
+        value: 0,
+      },
+      uCameraFar: {
+        value: 0,
+      },
+      uDepthFade: {
+        value: 0,
+      },
+      uResolution: {
+        value: new THREE.Vector2(),
+      },
+      uDepthTexture: {
+        value: null,
       },
     },
   });
@@ -246,6 +302,7 @@ const tick = (time) => {
   controls.update();
 
   testMesh.visible = false;
+  particleMesh.visible = false;
 
   const ctx = renderer.getContext();
 
@@ -263,13 +320,22 @@ const tick = (time) => {
 
   renderer.setRenderTarget(null);
 
-  testMesh.visible = true;
+  // testMesh.visible = true;
+  particleMesh.visible = true;
 
   testMesh.material.uniforms.tDepth.value = renderTarget.depthTexture;
   testMesh.material.uniforms.cameraNear.value = camera.near;
   testMesh.material.uniforms.cameraFar.value = camera.far;
   testMesh.material.uniforms.depthFade.value = params.depthFade;
   testMesh.material.uniforms.resolution.value = new THREE.Vector2(
+    width * ratio, height * ratio
+  );
+
+  particleMesh.material.uniforms.uDepthTexture.value = renderTarget.depthTexture;
+  particleMesh.material.uniforms.uCameraNear.value = camera.near;
+  particleMesh.material.uniforms.uCameraFar.value = camera.far;
+  particleMesh.material.uniforms.uDepthFade.value = params.depthFade;
+  particleMesh.material.uniforms.uResolution.value = new THREE.Vector2(
     width * ratio, height * ratio
   );
 
