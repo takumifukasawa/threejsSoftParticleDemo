@@ -296,7 +296,7 @@ const wrapper = document.querySelector(".js-wrapper");
 const canvas = document.querySelector(".js-canvas");
 
 const renderer = new THREE.WebGLRenderer({ canvas });
-const ratio = Math.min(window.devicePixelRatio, .5);
+const ratio = Math.min(window.devicePixelRatio, 1.5);
 
 renderer.setPixelRatio(ratio);
 
@@ -393,7 +393,7 @@ async function main() {
   scene.add(ambientLight);
 
   const floor = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(10, 10),
+    new THREE.PlaneBufferGeometry(100, 100),
     new THREE.MeshStandardMaterial({
       color: 0x68686b,
       roughness: 1,
