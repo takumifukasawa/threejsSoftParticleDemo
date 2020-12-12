@@ -120,9 +120,9 @@ async function createParticle() {
   const sizes = [];
   const colors = [];
 
-  const particleNum = 1;
-  const randomOffsetRange = 2;
-  const sizeRange = 2.;
+  const particleNum = 100;
+  const randomOffsetRange = 10;
+  const sizeRange = 1.;
   const sizeMin = 0.4;
 
   for(let i = 0; i < particleNum; i++) {
@@ -173,7 +173,7 @@ async function createParticle() {
     fragmentShader,
     transparent: true,
     blending: THREE.AdditiveBlending,
-    alphaTest: 0.01,
+    alphaTest: 0.1,
     depthWrite: false,
     uniforms: {
       uMaskTexture: {
@@ -230,7 +230,7 @@ const wrapper = document.querySelector(".js-wrapper");
 const canvas = document.querySelector(".js-canvas");
 
 const renderer = new THREE.WebGLRenderer({ canvas });
-const ratio = Math.min(window.devicePixelRatio, 1.5);
+const ratio = Math.min(window.devicePixelRatio, .5);
 
 renderer.setPixelRatio(ratio);
 
