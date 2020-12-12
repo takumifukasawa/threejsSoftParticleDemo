@@ -224,67 +224,67 @@ scene.add(cube);
 const particleMesh = createParticle();
 scene.add(particleMesh);
 
-const particleVertexShader = document.querySelector("#particle-vertex").textContent;
-const particleFragmentShader = document.querySelector("#particle-fragment").textContent;
+// const particleVertexShader = document.querySelector("#particle-vertex").textContent;
+// const particleFragmentShader = document.querySelector("#particle-fragment").textContent;
+// 
+// const testMesh = new THREE.Mesh(
+//   new THREE.BoxGeometry(1, 1, 1),
+//   new THREE.RawShaderMaterial({
+//     vertexShader: particleVertexShader,
+//     fragmentShader: particleFragmentShader,
+//     uniforms: {
+//       tDepth: {
+//         value: null
+//       },
+//       cameraNear: {
+//         value: 0
+//       },
+//       cameraFar: {
+//         value: 0
+//       },
+//       depthFade: {
+//         value: 0,
+//       },
+//       resolution: {
+//         value: new THREE.Vector2(),
+//       }
+//     },
+//     transparent: true
+//   })
+// );
 
-const testMesh = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.RawShaderMaterial({
-    vertexShader: particleVertexShader,
-    fragmentShader: particleFragmentShader,
-    uniforms: {
-      tDepth: {
-        value: null
-      },
-      cameraNear: {
-        value: 0
-      },
-      cameraFar: {
-        value: 0
-      },
-      depthFade: {
-        value: 0,
-      },
-      resolution: {
-        value: new THREE.Vector2(),
-      }
-    },
-    transparent: true
-  })
-);
+// testMesh.position.copy(new THREE.Vector3(0.5, 0.5, 0.5));
+// scene.add(testMesh);
 
-testMesh.position.copy(new THREE.Vector3(0.5, 0.5, 0.5));
-scene.add(testMesh);
-
-const postprocessScene = new THREE.Scene();
-const postprocessCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-
-const postprocessVertexShader = document.querySelector("#postprocess-vertex").textContent;
-const postprocessFragmentShader = document.querySelector("#postprocess-fragment").textContent;
-
-const postprocessQuad = new THREE.Mesh(
-  new THREE.PlaneBufferGeometry(2, 2),
-  new THREE.RawShaderMaterial({
-    vertexShader: postprocessVertexShader,
-    fragmentShader: postprocessFragmentShader,
-    uniforms: {
-      tDiffuse: {
-        value: null
-      },
-      tDepth: {
-        value: null
-      },
-      cameraNear: {
-        value: 0
-      },
-      cameraFar: {
-        value: 0
-      }
-    }
-  })
-);
-
-postprocessScene.add(postprocessQuad);
+// const postprocessScene = new THREE.Scene();
+// const postprocessCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+// 
+// const postprocessVertexShader = document.querySelector("#postprocess-vertex").textContent;
+// const postprocessFragmentShader = document.querySelector("#postprocess-fragment").textContent;
+// 
+// const postprocessQuad = new THREE.Mesh(
+//   new THREE.PlaneBufferGeometry(2, 2),
+//   new THREE.RawShaderMaterial({
+//     vertexShader: postprocessVertexShader,
+//     fragmentShader: postprocessFragmentShader,
+//     uniforms: {
+//       tDiffuse: {
+//         value: null
+//       },
+//       tDepth: {
+//         value: null
+//       },
+//       cameraNear: {
+//         value: 0
+//       },
+//       cameraFar: {
+//         value: 0
+//       }
+//     }
+//   })
+// );
+// 
+// postprocessScene.add(postprocessQuad);
 
 const onWindowResize = () => {
   width = wrapper.offsetWidth;
@@ -301,7 +301,7 @@ window.addEventListener("resize", () => onWindowResize());
 const tick = (time) => {
   controls.update();
 
-  testMesh.visible = false;
+  // testMesh.visible = false;
   particleMesh.visible = false;
 
   const ctx = renderer.getContext();
@@ -313,23 +313,23 @@ const tick = (time) => {
   ctx.colorMask(false, false, false, false);
   renderer.render(scene, camera);
 
-  postprocessQuad.material.uniforms.tDiffuse.value = renderTarget.texture;
-  postprocessQuad.material.uniforms.tDepth.value = renderTarget.depthTexture;
-  postprocessQuad.material.uniforms.cameraNear.value = camera.near;
-  postprocessQuad.material.uniforms.cameraFar.value = camera.far;
+  // postprocessQuad.material.uniforms.tDiffuse.value = renderTarget.texture;
+  // postprocessQuad.material.uniforms.tDepth.value = renderTarget.depthTexture;
+  // postprocessQuad.material.uniforms.cameraNear.value = camera.near;
+  // postprocessQuad.material.uniforms.cameraFar.value = camera.far;
 
   renderer.setRenderTarget(null);
 
   // testMesh.visible = true;
   particleMesh.visible = true;
 
-  testMesh.material.uniforms.tDepth.value = renderTarget.depthTexture;
-  testMesh.material.uniforms.cameraNear.value = camera.near;
-  testMesh.material.uniforms.cameraFar.value = camera.far;
-  testMesh.material.uniforms.depthFade.value = params.depthFade;
-  testMesh.material.uniforms.resolution.value = new THREE.Vector2(
-    width * ratio, height * ratio
-  );
+  // testMesh.material.uniforms.tDepth.value = renderTarget.depthTexture;
+  // testMesh.material.uniforms.cameraNear.value = camera.near;
+  // testMesh.material.uniforms.cameraFar.value = camera.far;
+  // testMesh.material.uniforms.depthFade.value = params.depthFade;
+  // testMesh.material.uniforms.resolution.value = new THREE.Vector2(
+  //   width * ratio, height * ratio
+  // );
 
   particleMesh.material.uniforms.uDepthTexture.value = renderTarget.depthTexture;
   particleMesh.material.uniforms.uCameraNear.value = camera.near;
@@ -347,4 +347,9 @@ const tick = (time) => {
   requestAnimationFrame(tick);
 }
 
-requestAnimationFrame(tick);
+
+async function main() {
+  requestAnimationFrame(tick);
+}
+
+main();
