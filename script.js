@@ -197,7 +197,7 @@ async function createParticle() {
   `;
 
   // const texture = await loadTexture("/smoke.png");
-  const texture = await loadTexture("./threejsSoftParticleDemo/smoke_sprite.png");
+  const texture = await loadTexture("./smoke_sprite.png");
 
   const geometry = new THREE.BufferGeometry();
 
@@ -306,7 +306,7 @@ async function createParticle() {
 }
 
 async function createFox() {
-  const gltfData = await loadGLTF("./threejsSoftParticleDemo/Fox.glb");
+  const gltfData = await loadGLTF("./Fox.glb");
   const {animations, scene: model } = gltfData;
   console.log(gltfData)
   console.log(animations, model)
