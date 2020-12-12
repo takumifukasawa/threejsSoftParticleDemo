@@ -4,6 +4,7 @@ console.log("run");
 
 let width, height;
 let particleMesh, foxMesh;
+let foxMixer;
 
 async function loadTexture(path) {
   const loader = new THREE.TextureLoader();
@@ -226,13 +227,14 @@ async function createFox() {
   const {animations, scene: model } = gltfData;
   console.log(gltfData)
   console.log(animations, model)
-  const mixer = new THREE.AnimationMixer(model);
-  for(let i = 0; i < animations.length; i++) {
-    const animation = animations[i];
-    const action = mixer.clipAction(animation);
-    action.play();
-    break;
-  }
+  foxMixer = new THREE.AnimationMixer(model);
+  // for(let i = 0; i < animations.length; i++) {
+  //   const animation = animations[i];
+  //   const action = foxMixer.clipAction(animation);
+  //   action.play();
+  // }
+  const action = foxMixer.clipAction(animations[2]);
+  action.play();
   const s = 0.01;
   model.scale.set(s, s, s);
   return model;
@@ -293,10 +295,24 @@ const onWindowResize = () => {
   renderTarget.setSize(width * ratio, height * ratio);
 }
 
+let currentTime;
+
 const tick = (time) => {
+  // skip first frame
+  if(!currentTime) {
+    currentTime = time;
+    requestAnimationFrame(tick);
+    return;
+  }
+
+  const deltaTime = time - currentTime;
+  currentTime = time;
+
   controls.update();
 
   particleMesh.visible = false;
+
+  foxMixer.update(deltaTime / 1000);
 
   const ctx = renderer.getContext();
 
