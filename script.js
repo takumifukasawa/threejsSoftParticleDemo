@@ -43,6 +43,7 @@ async function createParticle() {
   varying vec2 vUv;
   varying vec3 vColor;
   varying vec4 vViewPosition;
+  varying float vFade;
 
   uniform mat4 modelViewMatrix;
   uniform mat4 projectionMatrix;
@@ -52,23 +53,42 @@ async function createParticle() {
     vUv = uv;
     vColor = color;
     vec3 vertexPosition = position;
-    // vertexPosition.z += mod((uTime + index * 100.) / 1000., 1.);
+
+    float moveSpeed = .7;
+    float moveAnim = mod((uTime + index * 100.) / (1000. / moveSpeed), 1.);
+    float moveFade = smoothstep(0., .3, moveAnim) * (1. - smoothstep(.7, 1., moveAnim));
+
+    vFade = moveFade;
+
+    vec3 positionOffset = vec3(
+      0,
+      0,
+      mix(1.5, -1.5, moveAnim)
+    );
+    vertexPosition += positionOffset;
+
     vec4 mvPosition = modelViewMatrix * vec4(vertexPosition, 1.);
+
     vViewPosition = mvPosition;
-    float anim = sin((uTime * 2. + index * 100.) / 1000.) * .5 + .5;
-    anim = 1.;
-    mvPosition.xy += offset * vec2(size.x, size.y) * anim;
+
+    // float anim = sin((uTime * 2. + index * 100.) / 1000.) * .5 + .5;
+    // anim = 1.;
+    // mvPosition.xy += offset * vec2(size.x, size.y) * anim;
+    mvPosition.xy += offset * vec2(size.x, size.y);
     gl_Position = projectionMatrix * mvPosition;
   }
   `;
 
   const fragmentShader = `
   precision highp float;
+
   #include <packing>
+  #include <fog_pars_fragment>
 
   varying vec2 vUv;
   varying vec3 vColor;
   varying vec4 vViewPosition;
+  varying float vFade;
 
   uniform float uCameraNear;
   uniform float uCameraFar;
@@ -77,6 +97,7 @@ async function createParticle() {
   uniform float uDepthFade;
   uniform sampler2D uMaskTexture;
   uniform float uEnableFade;
+  uniform float uOpacity;
 
   float readDepth(sampler2D depthSampler, vec2 coord) {
     float fragCoordZ = texture2D(depthSampler, coord).x;
@@ -96,8 +117,6 @@ async function createParticle() {
 
     diffuseColor = vec4(mask);
 
-    #include <alphatest_fragment>
-
     vec2 screenCoord = vec2(
       gl_FragCoord.x / uResolution.x,
       gl_FragCoord.y / uResolution.y
@@ -107,14 +126,18 @@ async function createParticle() {
 
     float viewZ = vViewPosition.z;
     float currentDepth = viewZToOrthographicDepth(viewZ, uCameraNear, uCameraFar);
-    float fade = mix(
+    float depthFade = mix(
       1.,
       clamp(abs(currentDepth - sceneDepth) / max(uDepthFade, .0001), 0., 1.),
       uEnableFade
     );
 
-    diffuseColor.a *= fade;
+    diffuseColor.a *= vFade * depthFade * uOpacity;
+
     gl_FragColor = diffuseColor;
+
+    #include <alphatest_fragment>
+    #include <fog_fragment>
     // gl_FragColor = vec4(vec3(currentDepth), 1.);
     // gl_FragColor = vec4(vec3(1.), fade);
   }
@@ -136,14 +159,14 @@ async function createParticle() {
   const sizes = [];
   const colors = [];
 
-  const particleNum = 20;
-  const randomOffsetRange = 4;
+  const particleNum = 40;
+  const randomOffsetRange = 6;
   const sizeRange = 1.;
   const sizeMin = 0.4;
 
   for(let i = 0; i < particleNum; i++) {
     const px = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
-    const py = Math.random() * 0.5 - 0.25;
+    const py = Math.random() * 0.5;
     const pz = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
     const size = Math.random() * sizeRange + sizeMin;
     const color = {
@@ -215,6 +238,9 @@ async function createParticle() {
       },
       uEnableFade: {
         value: params.enableFadeBit,
+      },
+      uOpacity: {
+        value: params.opacity,
       }
     },
   });
@@ -245,6 +271,7 @@ const params = {
   enable: true,
   enableFadeBit: 1,
   depthFade: 0.02,
+  opacity: 1,
 };
 
 const pane = new Tweakpane();
@@ -258,6 +285,11 @@ pane.addInput(params, "depthFade", {
   max: 0.2,
   step: 0.0001
 });
+pane.addInput(params, "opacity", {
+  min: 0,
+  max: 1,
+  step: 0.01
+})
 
 
 const wrapper = document.querySelector(".js-wrapper");
@@ -269,6 +301,9 @@ const ratio = Math.min(window.devicePixelRatio, .5);
 renderer.setPixelRatio(ratio);
 
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xcccccc);
+scene.fog = new THREE.FogExp2(0xcccccc, 0.1);
+
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
 camera.position.set(1.2, 1.2, 3);
 camera.lookAt(new THREE.Vector3(0, 0.5, 0));
@@ -335,6 +370,7 @@ const tick = (time) => {
     width * ratio, height * ratio
   );
   particleMesh.material.uniforms.uEnableFade.value = params.enableFadeBit;
+  particleMesh.material.uniforms.uOpacity.value = params.opacity;
 
   ctx.colorMask(true, true, true, true);
   renderer.render(scene, camera);
