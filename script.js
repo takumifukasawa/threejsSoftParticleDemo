@@ -317,6 +317,7 @@ async function createFox() {
   //   const action = foxMixer.clipAction(animation);
   //   action.play();
   // }
+  foxMixer.timeScale = 1.3;
   const action = foxMixer.clipAction(animations[2]);
   action.play();
   const s = 0.01;
@@ -339,7 +340,7 @@ scene.fog = new THREE.FogExp2(0xcccccc, 0.1);
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
 camera.position.set(1.2, 1.2, 3);
-camera.lookAt(new THREE.Vector3(0, 0.5, 0));
+camera.lookAt(new THREE.Vector3(0, 0.8, 0));
 
 const renderTarget = new THREE.WebGLRenderTarget(1, 1);
 renderTarget.texture.format = THREE.RGBFormat;
@@ -426,7 +427,7 @@ async function main() {
   scene.add(ambientLight);
 
   const floor = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(30, 30),
+    new THREE.PlaneBufferGeometry(50, 50),
     new THREE.MeshStandardMaterial({
       color: 0x68686b,
       roughness: 1,
