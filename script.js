@@ -3,7 +3,7 @@
 console.log("run");
 
 let width, height;
-let particleMesh;
+let particleMesh, foxMesh;
 
 async function loadTexture(path) {
   const loader = new THREE.TextureLoader();
@@ -16,6 +16,19 @@ async function loadTexture(path) {
     loader.load(path, onLoad, undefined, onError);
   });
 }
+
+async function loadGLTF(path) {
+  const loader = new THREE.GLTFLoader();
+  return new Promise((resolve, reject) => {
+    const onLoad = (gltf) => resolve(gltf);
+    const onError = (err) => {
+      console.error(err);
+      reject();
+    }
+    loader.load(path, onLoad, undefined, onError);
+  });
+}
+
 
 async function createParticle() {
   const vertexShader = `
@@ -37,7 +50,9 @@ async function createParticle() {
   void main() {
     vUv = uv;
     vColor = color;
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+    vec3 vertexPosition = position;
+    // vertexPosition.z += mod((uTime + index * 100.) / 1000., 1.);
+    vec4 mvPosition = modelViewMatrix * vec4(vertexPosition, 1.);
     vViewPosition = mvPosition;
     float anim = sin((uTime * 2. + index * 100.) / 1000.) * .5 + .5;
     anim = 1.;
@@ -120,14 +135,14 @@ async function createParticle() {
   const sizes = [];
   const colors = [];
 
-  const particleNum = 100;
-  const randomOffsetRange = 10;
+  const particleNum = 20;
+  const randomOffsetRange = 4;
   const sizeRange = 1.;
   const sizeMin = 0.4;
 
   for(let i = 0; i < particleNum; i++) {
     const px = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
-    const py = Math.random() * 1 - 0.5;
+    const py = Math.random() * 0.5 - 0.25;
     const pz = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
     const size = Math.random() * sizeRange + sizeMin;
     const color = {
@@ -204,6 +219,23 @@ async function createParticle() {
   });
 
   return new THREE.Mesh(geometry, material);
+}
+
+async function createFox() {
+  const gltfData = await loadGLTF("/Fox.glb");
+  const {animations, scene: model } = gltfData;
+  console.log(gltfData)
+  console.log(animations, model)
+  const mixer = new THREE.AnimationMixer(model);
+  for(let i = 0; i < animations.length; i++) {
+    const animation = animations[i];
+    const action = mixer.clipAction(animation);
+    action.play();
+    break;
+  }
+  const s = 0.01;
+  model.scale.set(s, s, s);
+  return model;
 }
 
 
@@ -298,13 +330,23 @@ async function main() {
   particleMesh = await createParticle();
   scene.add(particleMesh);
 
+  foxMesh = await createFox();
+  scene.add(foxMesh);
+
+  const directionalLight = new THREE.DirectionalLight();
+  directionalLight.position.copy(new THREE.Vector3(1, 1, 1));
+  scene.add(directionalLight);
+
+  const ambientLight = new THREE.AmbientLight(0xffffff);
+  scene.add(ambientLight);
+
   const cube = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1),
     new THREE.MeshBasicMaterial({
       color: 0xff0000
     })
   );
-  scene.add(cube);
+  // scene.add(cube);
 
   onWindowResize();
   window.addEventListener("resize", () => onWindowResize());
