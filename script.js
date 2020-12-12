@@ -6,6 +6,30 @@ let width, height;
 let particleMesh, foxMesh;
 let foxMixer;
 
+const params = {
+  enable: true,
+  enableFadeBit: 1,
+  depthFade: 0.05,
+  opacity: 0.24,
+};
+
+const pane = new Tweakpane();
+pane
+  .addInput(params, "enable")
+  .on("change", (value) => {
+    params.enableFadeBit = value ? 1 : 0
+  });
+pane.addInput(params, "depthFade", {
+  min: 0,
+  max: 0.2,
+  step: 0.0001
+});
+pane.addInput(params, "opacity", {
+  min: 0,
+  max: 1,
+  step: 0.01
+})
+
 async function loadTexture(path) {
   const loader = new THREE.TextureLoader();
   return new Promise((resolve, reject) => {
@@ -44,19 +68,30 @@ async function createParticle() {
   varying vec3 vColor;
   varying vec4 vViewPosition;
   varying float vFade;
+  varying float vIndex;
 
   uniform mat4 modelViewMatrix;
   uniform mat4 projectionMatrix;
   uniform float uTime;
 
+  mat2 rotMat(float rad) {
+    return mat2(
+      cos(rad), sin(rad),
+      -sin(rad), cos(rad)
+    );
+  }
+
   void main() {
     vUv = uv;
     vColor = color;
+    vIndex = index;
+
     vec3 vertexPosition = position;
 
-    float moveSpeed = .7;
+    float moveSpeed = 1.;
     float moveAnim = mod((uTime + index * 100.) / (1000. / moveSpeed), 1.);
-    float moveFade = smoothstep(0., .3, moveAnim) * (1. - smoothstep(.7, 1., moveAnim));
+    // moveAnim = .5;
+    float moveFade = smoothstep(0., .5, moveAnim) * (1. - smoothstep(.5, 1., moveAnim));
 
     vFade = moveFade;
 
@@ -74,6 +109,8 @@ async function createParticle() {
     // float anim = sin((uTime * 2. + index * 100.) / 1000.) * .5 + .5;
     // anim = 1.;
     // mvPosition.xy += offset * vec2(size.x, size.y) * anim;
+
+    // mvPosition.xy += rotMat(index + uTime / 5000.) * offset * vec2(size.x, size.y);
     mvPosition.xy += offset * vec2(size.x, size.y);
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -89,7 +126,9 @@ async function createParticle() {
   varying vec3 vColor;
   varying vec4 vViewPosition;
   varying float vFade;
+  varying float vIndex;
 
+  uniform float uTime;
   uniform float uCameraNear;
   uniform float uCameraFar;
   uniform vec2 uResolution;
@@ -98,6 +137,7 @@ async function createParticle() {
   uniform sampler2D uMaskTexture;
   uniform float uEnableFade;
   uniform float uOpacity;
+  uniform vec2 uSpriteGrid;
 
   float readDepth(sampler2D depthSampler, vec2 coord) {
     float fragCoordZ = texture2D(depthSampler, coord).x;
@@ -113,7 +153,21 @@ async function createParticle() {
     // gl_FragColor = diffuseColor;
 
     vec4 diffuseColor = vec4(vec3(0.), 1.);
-    float mask = texture2D(uMaskTexture, vUv).r;
+
+    vec2 uv = vUv;
+    uv /= uSpriteGrid;
+    float spriteCellNum = uSpriteGrid.x * uSpriteGrid.y;
+    vec2 gridSize = vec2(
+      1. / uSpriteGrid.x, // row
+      1. / uSpriteGrid.y // col
+    );
+    // float cellIndex = floor(mod(vIndex + (uTime / 1000.) * spriteCellNum, spriteCellNum));
+    float cellIndex = floor(mod(vIndex, spriteCellNum));
+    float rowPos = mod(cellIndex, uSpriteGrid.x);
+    float colPos = floor(cellIndex / uSpriteGrid.x);
+    uv += vec2(rowPos, colPos) * gridSize;
+
+    float mask = texture2D(uMaskTexture, uv).r;
 
     diffuseColor = vec4(mask);
 
@@ -143,7 +197,8 @@ async function createParticle() {
   }
   `;
 
-  const texture = await loadTexture("/smoke.png");
+  // const texture = await loadTexture("/smoke.png");
+  const texture = await loadTexture("/smoke_sprite.png");
 
   const geometry = new THREE.BufferGeometry();
 
@@ -160,13 +215,13 @@ async function createParticle() {
   const colors = [];
 
   const particleNum = 40;
-  const randomOffsetRange = 6;
-  const sizeRange = 1.;
-  const sizeMin = 0.4;
+  const randomOffsetRange = 12;
+  const sizeRange = 2.0;
+  const sizeMin = 1.2;
 
   for(let i = 0; i < particleNum; i++) {
     const px = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
-    const py = Math.random() * 0.5;
+    const py = -Math.random() * 0.4 - 0.1;
     const pz = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
     const size = Math.random() * sizeRange + sizeMin;
     const color = {
@@ -241,6 +296,9 @@ async function createParticle() {
       },
       uOpacity: {
         value: params.opacity,
+      },
+      uSpriteGrid: {
+        value: new THREE.Vector2(4, 4)
       }
     },
   });
@@ -265,31 +323,6 @@ async function createFox() {
   model.scale.set(s, s, s);
   return model;
 }
-
-
-const params = {
-  enable: true,
-  enableFadeBit: 1,
-  depthFade: 0.02,
-  opacity: 1,
-};
-
-const pane = new Tweakpane();
-pane
-  .addInput(params, "enable")
-  .on("change", (value) => {
-    params.enableFadeBit = value ? 1 : 0
-  });
-pane.addInput(params, "depthFade", {
-  min: 0,
-  max: 0.2,
-  step: 0.0001
-});
-pane.addInput(params, "opacity", {
-  min: 0,
-  max: 1,
-  step: 0.01
-})
 
 
 const wrapper = document.querySelector(".js-wrapper");
