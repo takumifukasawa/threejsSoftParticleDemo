@@ -60,6 +60,7 @@ async function createParticle() {
   uniform sampler2D uDepthTexture;
   uniform float uDepthFade;
   uniform sampler2D uMaskTexture;
+  uniform float uEnableFade;
 
   float readDepth(sampler2D depthSampler, vec2 coord) {
     float fragCoordZ = texture2D(depthSampler, coord).x;
@@ -90,7 +91,11 @@ async function createParticle() {
 
     float viewZ = vViewPosition.z;
     float currentDepth = viewZToOrthographicDepth(viewZ, uCameraNear, uCameraFar);
-    float fade = clamp(abs(currentDepth - sceneDepth) / max(uDepthFade, .0001), 0., 1.);
+    float fade = mix(
+      1.,
+      clamp(abs(currentDepth - sceneDepth) / max(uDepthFade, .0001), 0., 1.),
+      uEnableFade
+    );
 
     diffuseColor.a *= fade;
     gl_FragColor = diffuseColor;
@@ -192,31 +197,40 @@ async function createParticle() {
       uDepthTexture: {
         value: null,
       },
+      uEnableFade: {
+        value: params.enableFadeBit,
+      }
     },
   });
 
   return new THREE.Mesh(geometry, material);
-
-    // material.uniforms.uTime.value = time;
 }
 
 
 const params = {
+  enable: true,
+  enableFadeBit: 1,
   depthFade: 0.02,
 };
 
 const pane = new Tweakpane();
+pane
+  .addInput(params, "enable")
+  .on("change", (value) => {
+    params.enableFadeBit = value ? 1 : 0
+  });
 pane.addInput(params, "depthFade", {
   min: 0,
   max: 0.2,
   step: 0.0001
 });
 
+
 const wrapper = document.querySelector(".js-wrapper");
 const canvas = document.querySelector(".js-canvas");
 
 const renderer = new THREE.WebGLRenderer({ canvas });
-const ratio = Math.min(window.devicePixelRatio, .5);
+const ratio = Math.min(window.devicePixelRatio, 1.5);
 
 renderer.setPixelRatio(ratio);
 
@@ -272,6 +286,7 @@ const tick = (time) => {
   particleMesh.material.uniforms.uResolution.value = new THREE.Vector2(
     width * ratio, height * ratio
   );
+  particleMesh.material.uniforms.uEnableFade.value = params.enableFadeBit;
 
   ctx.colorMask(true, true, true, true);
   renderer.render(scene, camera);
