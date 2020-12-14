@@ -308,8 +308,8 @@ async function createParticle() {
 async function createFox() {
   const gltfData = await loadGLTF("./Fox.glb");
   const {animations, scene: model } = gltfData;
-  console.log(gltfData)
-  console.log(animations, model)
+  model.children[0].children[0].castShadow = true;
+  model.children[0].children[1].castShadow = true;
   foxMixer = new THREE.AnimationMixer(model);
   // for(let i = 0; i < animations.length; i++) {
   //   const animation = animations[i];
@@ -329,6 +329,9 @@ const wrapper = document.querySelector(".js-wrapper");
 const canvas = document.querySelector(".js-canvas");
 
 const renderer = new THREE.WebGLRenderer({ canvas });
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
 const ratio = Math.min(window.devicePixelRatio, 1);
 
 renderer.setPixelRatio(ratio);
@@ -416,10 +419,17 @@ async function main() {
   scene.add(particleMesh);
 
   foxMesh = await createFox();
+  // foxMesh.castShadow = true;
+  console.log(foxMesh)
   scene.add(foxMesh);
 
   const directionalLight = new THREE.DirectionalLight();
   directionalLight.position.copy(new THREE.Vector3(1, 1, 1));
+  directionalLight.castShadow = true;
+  directionalLight.shadow.mapSize.width = 512;
+  directionalLight.shadow.mapSize.height = 512;
+  directionalLight.shadow.mapSize.near = 0.1;
+  directionalLight.shadow.mapSize.far = 5;
   scene.add(directionalLight);
 
   const ambientLight = new THREE.AmbientLight(0xffffff);
@@ -434,6 +444,7 @@ async function main() {
       // fog: true,
     }),
   );
+  floor.receiveShadow = true;
   floor.rotation.x -= 90 * Math.PI / 180;
   scene.add(floor);
 
