@@ -339,6 +339,8 @@ renderer.setPixelRatio(ratio);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xcccccc);
 scene.fog = new THREE.FogExp2(0xcccccc, 0.1);
+// scene.background = new THREE.Color(0x68686b);
+// scene.fog = new THREE.FogExp2(0x68686b, 0.1);
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
 camera.position.set(1.2, 1.2, 3);
@@ -424,6 +426,7 @@ async function main() {
   scene.add(foxMesh);
 
   const directionalLight = new THREE.DirectionalLight();
+  directionalLight.intensity = 0.7;
   directionalLight.position.copy(new THREE.Vector3(1, 1, 1));
   directionalLight.castShadow = true;
   directionalLight.shadow.mapSize.width = 512;
@@ -433,12 +436,14 @@ async function main() {
   scene.add(directionalLight);
 
   const ambientLight = new THREE.AmbientLight(0xffffff);
+  ambientLight.intensity = 0.7;
   scene.add(ambientLight);
 
   const floor = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(50, 50),
     new THREE.MeshStandardMaterial({
       color: 0x68686b,
+      // color: 0xcccccc,
       roughness: 1,
       metalness: 0,
       // fog: true,
