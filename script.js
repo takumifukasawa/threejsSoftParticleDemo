@@ -89,7 +89,7 @@ async function createParticle() {
 
     vec3 vertexPosition = position;
 
-    float moveSpeed = 1.1;
+    float moveSpeed = .9;
     float moveAnim = mod((uTime + index * 200.) / (1000. / moveSpeed), 1.);
     float moveFade = smoothstep(0., .7, moveAnim) * (1. - smoothstep(.3, 1., moveAnim));
 
@@ -359,7 +359,7 @@ renderer.setPixelRatio(ratio);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xcccccc);
-scene.fog = new THREE.FogExp2(0xcccccc, 0.1);
+scene.fog = new THREE.FogExp2(0xcccccc, 0.12);
 // scene.background = new THREE.Color(0x68686b);
 // scene.fog = new THREE.FogExp2(0x68686b, 0.1);
 
