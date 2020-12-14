@@ -10,7 +10,12 @@ const params = {
   enable: true,
   enableFadeBit: 1,
   depthFade: 0.05,
-  opacity: 0.24,
+  color: {
+    r: 254,
+    g: 255,
+    b: 234,
+    a: 0.08
+  }
 };
 
 const pane = new Tweakpane();
@@ -24,11 +29,7 @@ pane.addInput(params, "depthFade", {
   max: 0.2,
   step: 0.0001
 });
-pane.addInput(params, "opacity", {
-  min: 0,
-  max: 1,
-  step: 0.01
-})
+pane.addInput(params, "color");
 
 async function loadTexture(path) {
   const loader = new THREE.TextureLoader();
@@ -135,8 +136,8 @@ async function createParticle() {
   uniform float uDepthFade;
   uniform sampler2D uMaskTexture;
   uniform float uEnableFade;
-  uniform float uOpacity;
   uniform vec2 uSpriteGrid;
+  uniform vec4 uColor;
 
   float readDepth(sampler2D depthSampler, vec2 coord) {
     float fragCoordZ = texture2D(depthSampler, coord).x;
@@ -183,7 +184,7 @@ async function createParticle() {
 
     float mask = texture2D(uMaskTexture, uv).r;
 
-    diffuseColor = vec4(mask);
+    diffuseColor = uColor;
 
     vec2 screenCoord = vec2(
       gl_FragCoord.x / uResolution.x,
@@ -200,7 +201,7 @@ async function createParticle() {
       uEnableFade
     );
 
-    diffuseColor.a *= vFade * depthFade * uOpacity;
+    diffuseColor.a *= vFade * depthFade * mask;
 
     gl_FragColor = diffuseColor;
 
@@ -313,12 +314,12 @@ async function createParticle() {
       uEnableFade: {
         value: params.enableFadeBit,
       },
-      uOpacity: {
-        value: params.opacity,
-      },
       uSpriteGrid: {
-        value: new THREE.Vector2(4, 4)
-      }
+        value: new THREE.Vector2(4, 4),
+      },
+      uColor: {
+        value: params.color
+      },
     },
   });
 
@@ -429,7 +430,10 @@ const tick = (time) => {
     width * ratio, height * ratio
   );
   particleMesh.material.uniforms.uEnableFade.value = params.enableFadeBit;
-  particleMesh.material.uniforms.uOpacity.value = params.opacity;
+  particleMesh.material.uniforms.uColor.value.x = params.color.r / 255;
+  particleMesh.material.uniforms.uColor.value.y = params.color.g / 255;
+  particleMesh.material.uniforms.uColor.value.z = params.color.b / 255;
+  particleMesh.material.uniforms.uColor.value.w = params.color.a;
 
   ctx.colorMask(true, true, true, true);
   renderer.render(scene, camera);
