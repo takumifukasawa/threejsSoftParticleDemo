@@ -10,7 +10,7 @@ const params = {
   enable: true,
   enableFadeBit: 1,
   depthFade: 0.05,
-  opacity: 0.24,
+  opacity: 1,
 };
 
 const pane = new Tweakpane();
@@ -99,7 +99,7 @@ async function createParticle() {
       0,
       mix(2., -2., moveAnim)
     );
-    vertexPosition += positionOffset;
+    // vertexPosition += positionOffset;
 
     vec4 mvPosition = modelViewMatrix * vec4(vertexPosition, 1.);
 
@@ -160,11 +160,26 @@ async function createParticle() {
       1. / uSpriteGrid.x, // row
       1. / uSpriteGrid.y // col
     );
+
     // float cellIndex = floor(mod(vIndex + (uTime / 1000.) * spriteCellNum, spriteCellNum));
-    float cellIndex = floor(mod(vIndex, spriteCellNum));
+    // float cellIndex = floor(mod(0. + (uTime / 1000.) * spriteCellNum, spriteCellNum));
+    float cellIndex = floor(mod(0. + (uTime / 330.), spriteCellNum));
+    cellIndex += .001;
+    // cellIndex = clamp(cellIndex, 0., spriteCellNum - 30.);
+    // cellIndex = 6. + .01;
+    // float cellIndex = floor(mod(vIndex, spriteCellNum));
+
     float rowPos = mod(cellIndex, uSpriteGrid.x);
-    float colPos = floor(cellIndex / uSpriteGrid.x);
-    uv += vec2(rowPos, colPos) * gridSize;
+    float colPos = floor(cellIndex / uSpriteGrid.y);
+    // rowPos = 1.;
+    // colPos = 1.;
+    uv.x += rowPos * gridSize.x;
+    // uv.y -= (colPos * gridSize.y - .75);
+    uv.y += (uSpriteGrid.y - 1.) * gridSize.y;
+    uv.y -= colPos * gridSize.y;
+    // uv.y -= colPos * gridSize.y;
+
+      // uv = vUv;
 
     float mask = texture2D(uMaskTexture, uv).r;
 
@@ -189,6 +204,10 @@ async function createParticle() {
 
     gl_FragColor = diffuseColor;
 
+    // // debug
+    gl_FragColor.rgb = texture2D(uMaskTexture, uv).xyz;
+    gl_FragColor.a = 1.;
+
     #include <alphatest_fragment>
     #include <fog_fragment>
     // gl_FragColor = vec4(vec3(currentDepth), 1.);
@@ -197,7 +216,8 @@ async function createParticle() {
   `;
 
   // const texture = await loadTexture("/smoke.png");
-  const texture = await loadTexture("./smoke_sprite.png");
+  const texture = await loadTexture("./smoke_sprite_2.png");
+  // const texture = await loadTexture("./uv-texture.png");
 
   const geometry = new THREE.BufferGeometry();
 
@@ -213,14 +233,15 @@ async function createParticle() {
   const sizes = [];
   const colors = [];
 
-  const particleNum = 40;
+  const particleNum = 1;
   const randomOffsetRange = 12;
   const sizeRange = 2.0;
   const sizeMin = 1.2;
 
   for(let i = 0; i < particleNum; i++) {
     const px = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
-    const py = -Math.random() * 0.4 - 0.1;
+    // const py = -Math.random() * 0.4 - 0.1;
+    const py = 2;
     const pz = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
     const size = Math.random() * sizeRange + sizeMin;
     const color = {
@@ -265,7 +286,7 @@ async function createParticle() {
     vertexShader,
     fragmentShader,
     transparent: true,
-    blending: THREE.AdditiveBlending,
+    // blending: THREE.AdditiveBlending,
     alphaTest: 0.1,
     depthWrite: false,
     uniforms: {
@@ -297,7 +318,7 @@ async function createParticle() {
         value: params.opacity,
       },
       uSpriteGrid: {
-        value: new THREE.Vector2(4, 4)
+        value: new THREE.Vector2(6, 6)
       }
     },
   });
