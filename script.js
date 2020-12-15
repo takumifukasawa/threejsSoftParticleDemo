@@ -91,6 +91,7 @@ async function createParticle() {
 
     float moveSpeed = .9;
     float moveAnim = mod((uTime + index * 200.) / (1000. / moveSpeed), 1.);
+    // float moveAnim = 0.5;
     float moveFade = smoothstep(0., .7, moveAnim) * (1. - smoothstep(.3, 1., moveAnim));
 
     vFade = moveFade;
@@ -165,7 +166,8 @@ async function createParticle() {
     // float cellIndex = floor(mod(vIndex + (uTime / 1000.) * spriteCellNum, spriteCellNum));
     // float cellIndex = floor(mod(0. + (uTime / 1000.) * spriteCellNum, spriteCellNum));
     float cellIndex = floor(mod(vIndex, spriteCellNum));
-    cellIndex += .001;
+    cellIndex = 0.;
+    // cellIndex += .1;
     // cellIndex = clamp(cellIndex, 0., spriteCellNum - 30.);
     // cellIndex = 6. + .01;
     // float cellIndex = floor(mod(vIndex, spriteCellNum));
@@ -202,6 +204,11 @@ async function createParticle() {
     );
 
     diffuseColor.a *= vFade * depthFade * mask;
+
+    // debug
+    // diffuseColor.rgb = vec3(depthFade);
+    // diffuseColor.a = 1.;
+    // diffuseColor.rgb = vec3(sceneDepth);
 
     gl_FragColor = diffuseColor;
 
@@ -294,7 +301,7 @@ async function createParticle() {
         value: texture,
       },
       uTime: {
-        value: 0,
+        value: 0.,
       },
       uCameraNear: {
         value: 0,
@@ -369,7 +376,7 @@ camera.position.set(1.2, 1.2, 3);
 camera.lookAt(new THREE.Vector3(0, 0.8, 0));
 
 const renderTarget = new THREE.WebGLRenderTarget(1, 1);
-renderTarget.texture.format = THREE.RGBFormat;
+renderTarget.texture.format = THREE.RGBAFormat;
 renderTarget.texture.minFilter = THREE.NearestFilter;
 renderTarget.texture.magFilter = THREE.NearestFilter;
 renderTarget.texture.generateMipmaps = false;
@@ -387,7 +394,7 @@ const onWindowResize = () => {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
-  renderTarget.setSize(width * ratio, height * ratio);
+  renderTarget.setSize(Math.floor(width * ratio), Math.floor(height * ratio));
 }
 
 let currentTime;
