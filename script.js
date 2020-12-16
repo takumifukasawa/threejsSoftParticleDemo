@@ -90,7 +90,7 @@ async function createParticle() {
     vec3 vertexPosition = position;
 
     float moveSpeed = .9;
-    float moveAnim = mod((uTime + index * 200.) / (1000. / moveSpeed), 1.);
+    float moveAnim = mod((uTime + index * 200.) / moveSpeed, 1.);
     float moveFade = smoothstep(0., .7, moveAnim) * (1. - smoothstep(.3, 1., moveAnim));
 
     vFade = moveFade;
@@ -123,7 +123,6 @@ async function createParticle() {
   varying float vFade;
   varying float vIndex;
 
-  uniform float uTime;
   uniform float uCameraNear;
   uniform float uCameraFar;
   uniform vec2 uResolution;
@@ -339,25 +338,25 @@ const onWindowResize = () => {
 let currentTime;
 
 const tick = (time) => {
+  const t = time / 1000;
+
   // skip first frame
   if(!currentTime) {
-    currentTime = time;
+    currentTime = t;
     requestAnimationFrame(tick);
     return;
   }
 
-  const deltaTime = time - currentTime;
-  currentTime = time;
+  const deltaTime = t - currentTime;
+  currentTime = t;
 
   controls.update();
 
   particleMesh.visible = false;
 
-  foxMixer.update(deltaTime / 1000);
+  foxMixer.update(deltaTime);
 
   const ctx = renderer.getContext();
-
-  particleMesh.material.uniforms.uTime.value = time;
 
   renderer.setRenderTarget(renderTarget);
 
@@ -368,6 +367,7 @@ const tick = (time) => {
 
   particleMesh.visible = true;
 
+  particleMesh.material.uniforms.uTime.value = t;
   particleMesh.material.uniforms.uDepthTexture.value = renderTarget.depthTexture;
   particleMesh.material.uniforms.uCameraNear.value = camera.near;
   particleMesh.material.uniforms.uCameraFar.value = camera.far;
