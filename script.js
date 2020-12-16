@@ -91,7 +91,6 @@ async function createParticle() {
 
     float moveSpeed = .9;
     float moveAnim = mod((uTime + index * 200.) / (1000. / moveSpeed), 1.);
-    // float moveAnim = 0.5;
     float moveFade = smoothstep(0., .7, moveAnim) * (1. - smoothstep(.3, 1., moveAnim));
 
     vFade = moveFade;
@@ -107,11 +106,6 @@ async function createParticle() {
 
     vViewPosition = mvPosition;
 
-    // float anim = sin((uTime * 2. + index * 100.) / 1000.) * .5 + .5;
-    // anim = 1.;
-    // mvPosition.xy += offset * vec2(size.x, size.y) * anim;
-
-    // mvPosition.xy += rotMat(index + uTime / 5000.) * offset * vec2(size.x, size.y);
     mvPosition.xy += offset * vec2(size.x, size.y);
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -147,44 +141,9 @@ async function createParticle() {
   }
 
   void main() {
-    // vec4 diffuseColor = vec4(vColor, 1.);
-    // vec2 p = vUv * 2. - 1.;
-    // diffuseColor.a = 1. - smoothstep(length(p), 0., .05);
-    // diffuseColor.a = clamp(diffuseColor.a, 0., 1.);
-    // gl_FragColor = diffuseColor;
-
     vec4 diffuseColor = vec4(vec3(0.), 1.);
 
-    vec2 uv = vUv;
-    uv /= uSpriteGrid;
-    float spriteCellNum = uSpriteGrid.x * uSpriteGrid.y;
-    vec2 gridSize = vec2(
-      1. / uSpriteGrid.x, // row
-      1. / uSpriteGrid.y // col
-    );
-
-    // float cellIndex = floor(mod(vIndex + (uTime / 1000.) * spriteCellNum, spriteCellNum));
-    // float cellIndex = floor(mod(0. + (uTime / 1000.) * spriteCellNum, spriteCellNum));
-    float cellIndex = floor(mod(vIndex, spriteCellNum));
-    cellIndex = 0.;
-    // cellIndex += .1;
-    // cellIndex = clamp(cellIndex, 0., spriteCellNum - 30.);
-    // cellIndex = 6. + .01;
-    // float cellIndex = floor(mod(vIndex, spriteCellNum));
-
-    float rowPos = mod(cellIndex, uSpriteGrid.x);
-    float colPos = floor(cellIndex / uSpriteGrid.y);
-    // rowPos = 1.;
-    // colPos = 1.;
-    uv.x += rowPos * gridSize.x;
-    // uv.y -= (colPos * gridSize.y - .75);
-    uv.y += (uSpriteGrid.y - 1.) * gridSize.y;
-    uv.y -= colPos * gridSize.y;
-    // uv.y -= colPos * gridSize.y;
-
-      // uv = vUv;
-
-    float mask = texture2D(uMaskTexture, uv).r;
+    float mask = texture2D(uMaskTexture, vUv).r;
 
     diffuseColor = uColor;
 
@@ -205,27 +164,14 @@ async function createParticle() {
 
     diffuseColor.a *= vFade * depthFade * mask;
 
-    // debug
-    // diffuseColor.rgb = vec3(depthFade);
-    // diffuseColor.a = 1.;
-    // diffuseColor.rgb = vec3(sceneDepth);
-
     gl_FragColor = diffuseColor;
-
-    // // debug
-    // gl_FragColor.rgb = texture2D(uMaskTexture, uv).xyz;
-    // gl_FragColor.a = 1.;
 
     #include <alphatest_fragment>
     #include <fog_fragment>
-    // gl_FragColor = vec4(vec3(currentDepth), 1.);
-    // gl_FragColor = vec4(vec3(1.), fade);
   }
   `;
 
-  const texture = await loadTexture("./smoke_sprite.png");
-  // const texture = await loadTexture("./smoke_sprite_2.png");
-  // const texture = await loadTexture("./uv-texture.png");
+  const texture = await loadTexture("./smoke-1.jpg");
 
   const geometry = new THREE.BufferGeometry();
 
@@ -339,11 +285,6 @@ async function createFox() {
   model.children[0].children[0].castShadow = true;
   model.children[0].children[1].castShadow = true;
   foxMixer = new THREE.AnimationMixer(model);
-  // for(let i = 0; i < animations.length; i++) {
-  //   const animation = animations[i];
-  //   const action = foxMixer.clipAction(animation);
-  //   action.play();
-  // }
   foxMixer.timeScale = 1.3;
   const action = foxMixer.clipAction(animations[2]);
   action.play();
@@ -367,8 +308,6 @@ renderer.setPixelRatio(ratio);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xcccccc);
 scene.fog = new THREE.FogExp2(0xcccccc, 0.12);
-// scene.background = new THREE.Color(0x68686b);
-// scene.fog = new THREE.FogExp2(0x68686b, 0.1);
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
 camera.fov = 50;
