@@ -306,8 +306,7 @@ scene.fog = new THREE.FogExp2(0xcccccc, 0.12);
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
 camera.fov = 50;
-camera.position.set(1.2, 1.2, 3);
-camera.lookAt(new THREE.Vector3(0, 0.8, 0));
+camera.position.set(2.2, 1.2, 3);
 
 const renderTarget = new THREE.WebGLRenderTarget(1, 1);
 renderTarget.texture.format = THREE.RGBAFormat;
