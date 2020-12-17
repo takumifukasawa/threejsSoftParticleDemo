@@ -1,8 +1,10 @@
 # threejsSoftParticleDemo
 
+three.js : v123
+
 demo : https://takumifukasawa.github.io/threejsSoftParticleDemo/
 
-## thumbnails
+## screenshots
 
 ![demo](https://github.com/takumifukasawa/threejsSoftParticleDemo/blob/master/captures/demo.gif)
 
