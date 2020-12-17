@@ -2,6 +2,7 @@
 let width, height;
 let particleMesh, foxMesh;
 let foxMixer;
+let currentTime;
 
 const params = {
   enable: true,
@@ -329,8 +330,6 @@ const onWindowResize = () => {
   renderer.setSize(width, height);
   renderTarget.setSize(Math.floor(width * ratio), Math.floor(height * ratio));
 }
-
-let currentTime;
 
 const tick = (time) => {
   let t = time / 1000;
