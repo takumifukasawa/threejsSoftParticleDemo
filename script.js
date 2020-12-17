@@ -1,7 +1,4 @@
 
-
-console.log("run");
-
 let width, height;
 let particleMesh, foxMesh;
 let foxMixer;
@@ -292,7 +289,6 @@ async function createFox() {
   return model;
 }
 
-
 const wrapper = document.querySelector(".js-wrapper");
 const canvas = document.querySelector(".js-canvas");
 
@@ -338,7 +334,7 @@ const onWindowResize = () => {
 let currentTime;
 
 const tick = (time) => {
-  const t = time / 1000;
+  let t = time / 1000;
 
   // skip first frame
   if(!currentTime) {
@@ -392,8 +388,6 @@ async function main() {
   scene.add(particleMesh);
 
   foxMesh = await createFox();
-  // foxMesh.castShadow = true;
-  console.log(foxMesh)
   scene.add(foxMesh);
 
   const directionalLight = new THREE.DirectionalLight();
@@ -414,23 +408,13 @@ async function main() {
     new THREE.PlaneBufferGeometry(50, 50),
     new THREE.MeshStandardMaterial({
       color: 0x68686b,
-      // color: 0xcccccc,
       roughness: 1,
       metalness: 0,
-      // fog: true,
     }),
   );
   floor.receiveShadow = true;
   floor.rotation.x -= 90 * Math.PI / 180;
   scene.add(floor);
-
-  const cube = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial({
-      color: 0xff0000
-    })
-  );
-  // scene.add(cube);
 
   onWindowResize();
   window.addEventListener("resize", () => onWindowResize());
