@@ -4,11 +4,11 @@ demo : https://takumifukasawa.github.io/threejsSoftParticleDemo/
 
 ## thumbnails
 
-![demo](https://takumifukasawa.github.io/threejsSoftParticleDemo/captures/demo.gif)
+![demo](https://takumifukasawa.github.io/threejsSoftParticleDemo/blob/master/captures/demo.gif)
 
-![before](https://takumifukasawa.github.io/threejsSoftParticleDemo/captures/disable-soft-particle.png)
+![before](https://takumifukasawa.github.io/threejsSoftParticleDemo/blob/master/captures/disable-soft-particle.png)
 
-![after](https://takumifukasawa.github.io/threejsSoftParticleDemo/captures/enable-soft-particle.png)
+![after](https://takumifukasawa.github.io/threejsSoftParticleDemo/blob/master/captures/enable-soft-particle.png)
 
 ## references
 
