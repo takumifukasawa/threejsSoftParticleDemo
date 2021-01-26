@@ -164,7 +164,7 @@ async function createParticle() {
   }
   `;
 
-  const texture = await loadTexture("./smoke.jpg");
+  const texture = await loadTexture("./smoke.png");
 
   const geometry = new THREE.BufferGeometry();
 
