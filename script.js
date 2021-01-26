@@ -1,4 +1,3 @@
-
 let width, height;
 let particleMesh, foxMesh;
 let foxMixer;
@@ -12,20 +11,18 @@ const params = {
     r: 254,
     g: 255,
     b: 234,
-    a: 0.08
-  }
+    a: 0.08,
+  },
 };
 
 const pane = new Tweakpane();
-pane
-  .addInput(params, "enable")
-  .on("change", (value) => {
-    params.enableFadeBit = value ? 1 : 0
-  });
+pane.addInput(params, "enable").on("change", (value) => {
+  params.enableFadeBit = value ? 1 : 0;
+});
 pane.addInput(params, "depthFade", {
   min: 0,
   max: 0.2,
-  step: 0.0001
+  step: 0.0001,
 });
 pane.addInput(params, "color");
 
@@ -36,7 +33,7 @@ async function loadTexture(path) {
     const onError = (err) => {
       console.error(err);
       reject();
-    }
+    };
     loader.load(path, onLoad, undefined, onError);
   });
 }
@@ -48,11 +45,10 @@ async function loadGLTF(path) {
     const onError = (err) => {
       console.error(err);
       reject();
-    }
+    };
     loader.load(path, onLoad, undefined, onError);
   });
 }
-
 
 async function createParticle() {
   const vertexShader = `
@@ -168,7 +164,7 @@ async function createParticle() {
   }
   `;
 
-  const texture = await loadTexture("./smoke-1.jpg");
+  const texture = await loadTexture("./smoke.jpg");
 
   const geometry = new THREE.BufferGeometry();
 
@@ -189,48 +185,45 @@ async function createParticle() {
   const sizeRange = 2.0;
   const sizeMin = 1.2;
 
-  for(let i = 0; i < particleNum; i++) {
+  for (let i = 0; i < particleNum; i++) {
     const px = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
     const py = -Math.random() * 0.4 - 0.1;
     const pz = Math.random() * randomOffsetRange - randomOffsetRange * 0.5;
     const size = Math.random() * sizeRange + sizeMin;
     const color = {
-      x: Math.random() * .4 + .6,
-      y: Math.random() * .4 + .4,
-      z: Math.random() * .2 + .2,
+      x: Math.random() * 0.4 + 0.6,
+      y: Math.random() * 0.4 + 0.4,
+      z: Math.random() * 0.2 + 0.2,
     };
 
-    for(let j = 0; j < 4; j++) {
+    for (let j = 0; j < 4; j++) {
       index.push(i);
       vertices.push(px, py, pz);
       sizes.push(size, size);
       colors.push(color.x, color.y, color.z);
     }
-    uvs.push(
-      0, 0,
-      1, 0,
-      1, 1,
-      0, 1
-    );
-    offsets.push(
-      -1, -1,
-      1, -1,
-      1, 1,
-      -1, 1
-    );
+    uvs.push(0, 0, 1, 0, 1, 1, 0, 1);
+    offsets.push(-1, -1, 1, -1, 1, 1, -1, 1);
     const vertexIndex = i * 4;
     indices.push(
-      vertexIndex + 0, vertexIndex + 1, vertexIndex + 2,
-      vertexIndex + 2, vertexIndex + 3, vertexIndex + 0
+      vertexIndex + 0,
+      vertexIndex + 1,
+      vertexIndex + 2,
+      vertexIndex + 2,
+      vertexIndex + 3,
+      vertexIndex + 0
     );
   }
   geometry.setIndex(indices);
-  geometry.setAttribute('index', new THREE.Uint16BufferAttribute(index, 1));
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-  geometry.setAttribute('uv', new THREE.Uint16BufferAttribute(uvs, 2));
-  geometry.setAttribute('offset', new THREE.Float32BufferAttribute(offsets, 2));
-  geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 2));
-  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute("index", new THREE.Uint16BufferAttribute(index, 1));
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(vertices, 3)
+  );
+  geometry.setAttribute("uv", new THREE.Uint16BufferAttribute(uvs, 2));
+  geometry.setAttribute("offset", new THREE.Float32BufferAttribute(offsets, 2));
+  geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 2));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
 
   const material = new THREE.RawShaderMaterial({
     vertexShader,
@@ -244,7 +237,7 @@ async function createParticle() {
         value: texture,
       },
       uTime: {
-        value: 0.,
+        value: 0,
       },
       uCameraNear: {
         value: 0,
@@ -268,7 +261,7 @@ async function createParticle() {
         value: new THREE.Vector2(4, 4),
       },
       uColor: {
-        value: params.color
+        value: params.color,
       },
     },
   });
@@ -278,7 +271,7 @@ async function createParticle() {
 
 async function createFox() {
   const gltfData = await loadGLTF("./Fox.glb");
-  const {animations, scene: model } = gltfData;
+  const { animations, scene: model } = gltfData;
   model.children[0].children[0].castShadow = true;
   model.children[0].children[1].castShadow = true;
   foxMixer = new THREE.AnimationMixer(model);
@@ -329,13 +322,13 @@ const onWindowResize = () => {
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
   renderTarget.setSize(Math.floor(width * ratio), Math.floor(height * ratio));
-}
+};
 
 const tick = (time) => {
   let t = time / 1000;
 
   // skip first frame
-  if(!currentTime) {
+  if (!currentTime) {
     currentTime = t;
     requestAnimationFrame(tick);
     return;
@@ -362,12 +355,14 @@ const tick = (time) => {
   particleMesh.visible = true;
 
   particleMesh.material.uniforms.uTime.value = t;
-  particleMesh.material.uniforms.uDepthTexture.value = renderTarget.depthTexture;
+  particleMesh.material.uniforms.uDepthTexture.value =
+    renderTarget.depthTexture;
   particleMesh.material.uniforms.uCameraNear.value = camera.near;
   particleMesh.material.uniforms.uCameraFar.value = camera.far;
   particleMesh.material.uniforms.uDepthFade.value = params.depthFade;
   particleMesh.material.uniforms.uResolution.value = new THREE.Vector2(
-    width * ratio, height * ratio
+    width * ratio,
+    height * ratio
   );
   particleMesh.material.uniforms.uEnableFade.value = params.enableFadeBit;
   particleMesh.material.uniforms.uColor.value.x = params.color.r / 255;
@@ -379,7 +374,7 @@ const tick = (time) => {
   renderer.render(scene, camera);
 
   requestAnimationFrame(tick);
-}
+};
 
 async function main() {
   particleMesh = await createParticle();
@@ -408,10 +403,10 @@ async function main() {
       color: 0x68686b,
       roughness: 1,
       metalness: 0,
-    }),
+    })
   );
   floor.receiveShadow = true;
-  floor.rotation.x -= 90 * Math.PI / 180;
+  floor.rotation.x -= (90 * Math.PI) / 180;
   scene.add(floor);
 
   onWindowResize();
