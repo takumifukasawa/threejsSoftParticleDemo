@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/takumifukasawa/threejsSoftParticileDemo#readme",
   "devDependencies": {
-    "browser-sync": "^2.26.13"
+    "browser-sync": "^2.27.5"
   }
 }
