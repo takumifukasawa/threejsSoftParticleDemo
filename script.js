@@ -60,10 +60,8 @@ async function createParticle() {
   attribute vec3 color;
 
   varying vec2 vUv;
-  varying vec3 vColor;
   varying vec4 vViewPosition;
   varying float vFade;
-  varying float vIndex;
 
   uniform mat4 modelViewMatrix;
   uniform mat4 projectionMatrix;
@@ -78,8 +76,6 @@ async function createParticle() {
 
   void main() {
     vUv = uv;
-    vColor = color;
-    vIndex = index;
 
     vec3 vertexPosition = position;
 
@@ -112,10 +108,8 @@ async function createParticle() {
   #include <fog_pars_fragment>
 
   varying vec2 vUv;
-  varying vec3 vColor;
   varying vec4 vViewPosition;
   varying float vFade;
-  varying float vIndex;
 
   uniform float uCameraNear;
   uniform float uCameraFar;
